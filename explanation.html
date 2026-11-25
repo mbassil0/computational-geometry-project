@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101a2b" />
+  <title>A Visual Guide to the Fréchet Distance</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #162238;
+      --muted: #66758b;
+      --paper: #f4f7fb;
+      --line: #dce4ef;
+      --blue: #3578e5;
+      --orange: #ed8a36;
+      --mint: #32a887;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      background:
+        radial-gradient(circle at 88% 8%, rgba(53, 120, 229, 0.08), transparent 24rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 100px;
+      padding: 22px 28px;
+      background: #101a2b;
+      color: #fff;
+      isolation: isolate;
+    }
+
+    .hero::before,
+    .hero::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      pointer-events: none;
+    }
+
+    .hero::before {
+      top: -180px;
+      right: -80px;
+      width: 520px;
+      height: 520px;
+      border: 1px solid rgba(139, 174, 231, 0.2);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 44px rgba(139, 174, 231, 0.035),
+        0 0 0 90px rgba(139, 174, 231, 0.025);
+    }
+
+    .hero::after {
+      right: 13%;
+      bottom: 42px;
+      width: 190px;
+      height: 54px;
+      border-top: 2px solid rgba(93, 151, 244, 0.75);
+      border-bottom: 2px solid rgba(237, 138, 54, 0.75);
+      transform: skewY(-13deg);
+    }
+
+    .hero-inner,
+    main {
+      width: min(920px, 100% - 48px);
+      margin-inline: auto;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(1.5rem, 3vw, 2.3rem);
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 1.02;
+    }
+
+    main {
+      padding-top: 44px;
+      padding-bottom: 96px;
+    }
+
+    .chapter-list {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 22px 60px rgba(28, 48, 79, 0.08);
+    }
+
+    .chapter {
+      position: relative;
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      align-items: start;
+      min-height: 128px;
+      padding: 32px 40px;
+    }
+
+    .chapter + .chapter {
+      border-top: 1px solid var(--line);
+    }
+
+    .chapter::before {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 4px;
+      background: var(--chapter-color, var(--blue));
+      content: "";
+      opacity: 0.9;
+      transform: scaleY(0.28);
+      transform-origin: center;
+      transition: transform 180ms ease;
+    }
+
+    .chapter:hover::before,
+    .chapter:focus-within::before {
+      transform: scaleY(1);
+    }
+
+    .chapter-number {
+      padding-top: 2px;
+      color: var(--chapter-color, var(--blue));
+      font-size: 0.82rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+      font-weight: 620;
+      letter-spacing: -0.025em;
+      line-height: 1.35;
+    }
+
+    .chapter-copy {
+      grid-column: 2;
+      max-width: 680px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.75;
+    }
+
+    .chapter-subheading {
+      grid-column: 2;
+      margin: 22px 0 0;
+      color: var(--ink);
+      font-size: 0.94rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+    }
+
+    .rule-list {
+      grid-column: 2;
+      display: grid;
+      gap: 14px;
+      max-width: 700px;
+      margin: 16px 0 0;
+      padding-left: 1.35rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .rule-list li {
+      padding-left: 0.25rem;
+    }
+
+    .rule-list li::marker {
+      color: var(--orange);
+      font-weight: 750;
+    }
+
+    .rule-list strong {
+      color: var(--ink);
+    }
+
+    .chapter-note {
+      grid-column: 2;
+      max-width: 700px;
+      margin: 18px 0 0;
+      padding: 13px 16px;
+      border-left: 3px solid var(--mint);
+      border-radius: 0 9px 9px 0;
+      background: #eef8f5;
+      color: #345b52;
+      font-size: 0.86rem;
+      line-height: 1.65;
+    }
+
+    .comparison-figure {
+      grid-column: 2;
+      margin: 18px 0 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .comparison-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .comparison-figure figcaption {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+
+    .rule-three-example {
+      width: 200px;
+      max-width: 100%;
+      margin: 14px 0 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .rule-three-example img {
+      display: block;
+      width: 180px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .rule-three-example figcaption {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.73rem;
+      line-height: 1.5;
+    }
+
+    .rule-one-example-copy {
+      margin: 12px 0 0;
+      color: var(--muted);
+    }
+
+    .rule-one-visuals {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .rule-one-visuals figure {
+      min-width: 0;
+      margin: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .rule-one-visuals h4 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .rule-one-visuals img,
+    .rule-one-visuals svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+      background: #f7f8fa;
+    }
+
+    .rule-one-visuals figcaption {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.73rem;
+      line-height: 1.5;
+    }
+
+    .rule-two-visuals figure {
+      grid-column: 1 / -1;
+    }
+
+    .equation {
+      grid-column: 2;
+      overflow-x: auto;
+      max-width: 100%;
+      margin: 22px 0 8px;
+      padding: 24px 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8faff;
+      color: var(--ink);
+      font-size: clamp(0.85rem, 1.7vw, 1.1rem);
+      text-align: center;
+    }
+
+    .equation math {
+      margin-inline: auto;
+    }
+
+    .visual-pair {
+      grid-column: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .visual-card {
+      min-width: 0;
+      margin: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .visual-card h3 {
+      margin: 0 0 14px;
+      color: var(--ink);
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .curve-figure,
+    .free-space-plot {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .curve-figure {
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .visual-card figcaption {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+
+    .diagram-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .reachability-status {
+      margin-top: 12px;
+      color: #087a32;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .chapter:nth-child(4n + 2) { --chapter-color: var(--orange); }
+    .chapter:nth-child(4n + 3) { --chapter-color: var(--mint); }
+    .chapter:nth-child(4n + 4) { --chapter-color: #8067d8; }
+
+    @media (max-width: 600px) {
+      .hero {
+        min-height: 88px;
+        padding: 18px 24px;
+      }
+
+      .hero-inner,
+      main {
+        width: min(100% - 32px, 920px);
+      }
+
+      .hero::after {
+        right: -20px;
+        bottom: 12px;
+        opacity: 0.55;
+        transform: scale(0.75) skewY(-13deg);
+      }
+
+      main {
+        padding-top: 24px;
+      }
+
+      .chapter {
+        grid-template-columns: 36px minmax(0, 1fr);
+        min-height: 112px;
+        padding: 28px 22px;
+      }
+
+      .visual-pair {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .visual-card {
+        padding: 13px;
+      }
+
+      .rule-one-visuals {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Fréchet Distance</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="chapter-list">
+      <section class="chapter" id="chapter-1">
+        <span class="chapter-number">01</span>
+        <h2>Introduction</h2>
+        <p class="chapter-copy">
+          Trajectories appear in many settings, including GPS tracking, handwriting, and motion capture. Comparing two trajectories is not as simple as measuring the distance between points at matching times: the same path may be followed at different speeds. The Fréchet distance accounts for this by comparing curves while preserving their order.
+        </p>
+        <p class="chapter-copy">
+          Imagine a person and a dog walking along separate curves, connected by a leash. They may change speed, but neither may walk backwards. For each possible traversal, the leash must be long enough to cover the greatest separation between them. The Fréchet distance is the shortest leash length possible over all such traversals.
+        </p>
+        <p class="chapter-copy">
+          This project explores how to decide whether two curves can be traversed with a leash no longer than a chosen threshold. It visualizes the free-space diagram, where pairs of points close enough to each other form the free space, and a monotone path through that space represents a valid traversal. The project then illustrates how a divide-and-conquer algorithm processes the diagram in boxes and uses pruning rules to avoid unnecessary work.
+        </p>
+      </section>
+
+      <section class="chapter" id="chapter-2">
+        <span class="chapter-number">02</span>
+        <h2>The Fréchet Distance</h2>
+        <p class="chapter-copy">
+          A traversal describes how a person and a dog move along curves π and σ at the same time. They can change speed or pause, but they must keep moving forward from the start of each curve to its end. For any chosen pair of traversals, the leash must be long enough for the greatest separation they reach.
+        </p>
+        <div class="equation" role="math" aria-label="The Fréchet distance is the infimum over valid parameterizations f and g of the maximum distance between the curves during the traversal.">
+          <math display="block">
+            <mrow>
+              <msub><mi>d</mi><mi>F</mi></msub>
+              <mo>(</mo><mi>π</mi><mo>,</mo><mi>σ</mi><mo>)</mo>
+              <mo>:=</mo>
+              <munder>
+                <mo>inf</mo>
+                <mrow>
+                  <mi>f</mi><mo>∈</mo><msub><mi>T</mi><mi>n</mi></msub>
+                  <mo>,</mo><mspace width="0.35em"/>
+                  <mi>g</mi><mo>∈</mo><msub><mi>T</mi><mi>m</mi></msub>
+                </mrow>
+              </munder>
+              <mspace width="0.35em"/>
+              <munder>
+                <mo>max</mo>
+                <mrow>
+                  <mi>t</mi><mo>∈</mo><mo>[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>]</mo>
+                </mrow>
+              </munder>
+              <mspace width="0.25em"/>
+              <mo>‖</mo>
+              <mi>π</mi><mo>(</mo><mi>f</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>)</mo>
+              <mo>−</mo>
+              <mi>σ</mi><mo>(</mo><mi>g</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>)</mo>
+              <mo>‖</mo>
+            </mrow>
+          </math>
+        </div>
+        <p class="chapter-copy">
+          Here, f and g are valid continuous, nondecreasing parameterizations of the two curves. The maximum finds the greatest distance between the walkers during one traversal; the infimum chooses the pair of traversals that makes that greatest distance as small as possible. That smallest possible worst-case separation is the Fréchet distance.
+        </p>
+        <p class="chapter-copy">
+          In this project, we also ask the decision version of the question: for a chosen leash length δ, does there exist a traversal whose leash never exceeds δ? The free-space diagram turns that question into a reachability problem.
+        </p>
+      </section>
+
+      <section class="chapter" id="chapter-3">
+        <span class="chapter-number">03</span>
+        <h2>The Free-Space Diagram</h2>
+        <p class="chapter-copy">
+          The free-space diagram turns pairs of positions on the curves into points on a grid. Progress along curve P is on the horizontal axis, and progress along curve Q is on the vertical axis. Each cell pairs one segment of P with one segment of Q. A point in a cell is free when the two corresponding curve positions are at most δ apart.
+        </p>
+        <p class="chapter-copy">
+          Green shows free space and red shows non-free space for the δ value used in the sketch. A continuous path that moves only right and upward from the lower-left corner to the upper-right corner represents a valid traversal of both curves. Blue marks show reachable boundary intervals; the purple line shows one valid traversal when the endpoint is reachable. 
+          Below there is an example of two curves P and Q and their free-space diagram that will be inspected further in chapter 05 and 08.
+        </p>
+        <div class="visual-pair">
+          <figure class="visual-card">
+            <h3>Curves P and Q</h3>
+            <svg class="curve-figure" viewBox="0 10 490 290" role="img" aria-labelledby="curve-title curve-description">
+              <title id="curve-title">The two polygonal curves from the project sketch</title>
+              <desc id="curve-description">Curve P is blue and curve Q is orange. Vertices are labelled in order.</desc>
+              <path d="M43 262 L155 145 L270 145 L270 34 L214 201 L329 201 L442 144" fill="none" stroke="#1976d2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" />
+              <path d="M162 260 L75 178 L89 92 L342 76 L334 242 L423 195 L307 183 L416 115 L459 167" fill="none" stroke="#e67e22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" />
+              <g fill="#1976d2" font-family="system-ui, sans-serif" font-size="12">
+                <circle cx="43" cy="262" r="5"/><text x="52" y="254">P1</text>
+                <circle cx="155" cy="145" r="5"/><text x="164" y="137">P2</text>
+                <circle cx="270" cy="145" r="5"/><text x="279" y="137">P3</text>
+                <circle cx="270" cy="34" r="5"/><text x="279" y="26">P4</text>
+                <circle cx="214" cy="201" r="5"/><text x="223" y="193">P5</text>
+                <circle cx="329" cy="201" r="5"/><text x="338" y="193">P6</text>
+                <circle cx="442" cy="144" r="5"/><text x="450" y="136">P7</text>
+              </g>
+              <g fill="#e67e22" font-family="system-ui, sans-serif" font-size="12">
+                <circle cx="162" cy="260" r="5"/><text x="170" y="253">Q1</text>
+                <circle cx="75" cy="178" r="5"/><text x="84" y="172">Q2</text>
+                <circle cx="89" cy="92" r="5"/><text x="98" y="84">Q3</text>
+                <circle cx="342" cy="76" r="5"/><text x="350" y="68">Q4</text>
+                <circle cx="334" cy="242" r="5"/><text x="343" y="236">Q5</text>
+                <circle cx="423" cy="195" r="5"/><text x="431" y="209">Q6</text>
+                <circle cx="307" cy="183" r="5"/><text x="316" y="176">Q7</text>
+                <circle cx="416" cy="115" r="5"/><text x="424" y="109">Q8</text>
+                <circle cx="459" cy="167" r="5"/><text x="467" y="161">Q9</text>
+              </g>
+            </svg>
+            <figcaption>Blue is P; orange is Q. These are the default vertices defined in <code>sketch.js</code>.</figcaption>
+          </figure>
+
+          <figure class="visual-card">
+            <h3>Free-space diagram · δ = 140</h3>
+            <canvas class="free-space-plot" id="free-space-plot" width="720" height="500" role="img" aria-label="Free-space diagram for curves P and Q with leash threshold delta 140"></canvas>
+            <div class="diagram-legend" aria-label="Diagram legend">
+              <span class="legend-item"><span class="legend-swatch" style="background:#00b400"></span>Free</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:#c83232"></span>Non-free</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:#0050ff"></span>Reachable</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:#b400dc"></span>Traversal path</span>
+            </div>
+            <div class="reachability-status" id="reachability-status" aria-live="polite"></div>
+            <figcaption>Each grid cell corresponds to one segment pair. The plot uses the example curves, threshold, reachable intervals, and traversal path from the sketch’s algorithm.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="chapter" id="chapter-4">
+        <span class="chapter-number">04</span>
+        <h2>The Divide-and-Conquer Algorithm</h2>
+        <p class="chapter-copy">
+          Fix a leash length δ. The decision problem is to determine whether the start and end of the curves can be connected by a monotone path through free space. The divide-and-conquer algorithm answers this by working on rectangular groups of cells, called boxes, in the free-space diagram.
+        </p>
+        <p class="chapter-copy">
+          It starts with the full diagram. For each box, the algorithm receives reachable intervals along its left and bottom edges. These are the entry points a valid traversal can use. It then finds the reachable intervals on the top and right edges, which become inputs to neighboring boxes.
+        </p>
+        <p class="chapter-copy">
+          If a box contains more than one cell, the algorithm splits it roughly in half along its longer dimension and recursively processes the two smaller boxes. It passes the first box’s results to the second wherever the boxes meet. When a box contains a single cell, the algorithm uses that cell’s free-space intervals to compute its reachable top and right outputs directly.
+        </p>
+        <p class="chapter-copy">
+          Once the boxes at the outer top and right edges have been processed, the algorithm checks whether the shared upper-right endpoint is reachable. If it is, the curves can be traversed with leash length at most δ; otherwise, they cannot. Trying different values of δ can then locate the Fréchet distance.
+        </p>
+        <p class="chapter-note">
+          In the visualizer, a step records a box the recursion processes, along with its inputs, outputs, and any pruning decisions. A step count is therefore a count of recorded box operations, not the number of free-space cells in the whole diagram.
+        </p>
+      </section>
+
+      <section class="chapter" id="chapter-5">
+        <span class="chapter-number">05</span>
+        <h2>Pruning</h2>
+        <p class="chapter-copy">
+          Pruning uses information already known about a box to avoid recursively processing parts of it, or to avoid computing an output that is no longer needed. A box’s inputs describe where a traversal can enter; its free space describes where the leash constraint is satisfied. The rules below use those facts to preserve the reachable results needed by the algorithm.
+        </p>
+        <ol class="rule-list">
+          <li>
+            <strong>Rule I — no reachable inputs.</strong> If every interval on both the left and bottom input boundaries is empty, no traversal can enter the box. Its top and right outputs are therefore empty too, so the algorithm can finish that box immediately.
+            <p class="rule-one-example-copy">
+              In this example, divide-and-conquer splits the box into B1 and B2. B1’s right output is empty, so the left input of B2 is empty. The bottom input of B2 is also empty in the pictured example. Since both inputs to B2 are empty, Rule I applies and both of B2’s outputs are empty. B2 does not need to be subdivided further.
+            </p>
+            <div class="rule-one-visuals" aria-label="Four stages of the Rule I pruning example">
+              <figure>
+                <h4>1. Curves and leash threshold</h4>
+                <img src="example-pruneI.png" alt="Curves P and Q with the delta equals 87 radius around P3" loading="lazy" />
+                <figcaption>The example curves define the free space for δ = 87.</figcaption>
+              </figure>
+              <figure>
+                <h4>2. Reachability in the free-space diagram</h4>
+                <svg viewBox="0 0 360 235" role="img" aria-labelledby="rule-one-free-title rule-one-free-desc">
+                  <title id="rule-one-free-title">Reachable and free portions of the example diagram</title>
+                  <desc id="rule-one-free-desc">A three-column, two-row free-space grid. Free regions are green, non-free regions are red, and the reachable start intervals are blue in the bottom-left cell.</desc>
+                  <rect x="48" y="12" width="270" height="168" fill="#c83232" />
+                  <path d="M48 180 L48 135 C63 126 80 121 103 118 C118 117 124 131 116 145 C108 160 91 170 83 180 Z" fill="#00b400" />
+                  <path d="M250 62 C248 47 259 34 278 25 C293 18 307 14 318 13 L318 73 C302 77 286 78 270 74 C259 71 253 67 250 62 Z" fill="#00b400" />
+                  <g stroke="#202020" stroke-width="1.4" fill="none">
+                    <path d="M48 12H318V180H48Z" />
+                    <path d="M138 12V180M228 12V180M48 96H318" />
+                  </g>
+                  <path d="M48 180H89M48 180V151" stroke="#0050ff" stroke-width="6" stroke-linecap="round" />
+                  <g fill="#172238" font-family="system-ui, sans-serif" font-size="13">
+                    <text x="44" y="199">1</text><text x="133" y="199">2</text><text x="223" y="199">3</text><text x="313" y="199">4</text>
+                    <text x="31" y="184">1</text><text x="31" y="101">2</text><text x="31" y="17">3</text>
+                    <text x="174" y="223">P →</text><text x="9" y="93" transform="rotate(-90 9 93)">Q →</text>
+                  </g>
+                </svg>
+                <figcaption>Only the lower-left input is reachable; the bottom boundary under B2 has no reachable interval.</figcaption>
+              </figure>
+              <figure>
+                <h4>3. Divide into B1 and B2</h4>
+                <svg viewBox="0 0 360 190" role="img" aria-labelledby="rule-one-split-title rule-one-split-desc">
+                  <title id="rule-one-split-title">The divide-and-conquer split into B1 and B2</title>
+                  <desc id="rule-one-split-desc">B1 is on the left and B2 is on the right. A blue reachable input enters B1, while its empty right output gives B2 an empty left input. B2 also has an empty bottom input.</desc>
+                  <rect x="48" y="26" width="90" height="112" fill="#d7f0e6" stroke="#218260" stroke-width="3" />
+                  <rect x="138" y="26" width="180" height="112" fill="#f5dfd7" stroke="#c9825d" stroke-width="3" />
+                  <path d="M48 138H82M48 138V108" stroke="#0050ff" stroke-width="7" stroke-linecap="round" />
+                  <path d="M138 37V127" stroke="#66758b" stroke-width="2" stroke-dasharray="5 5" />
+                  <g fill="#172238" font-family="system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle">
+                    <text x="93" y="84">B1</text><text x="228" y="84">B2</text>
+                  </g>
+                  <g fill="#172238" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">
+                    <text x="138" y="20">B1 right output = ∅</text>
+                    <text x="228" y="160">B2 bottom input = ∅</text>
+                    <text x="183" y="180">So B2’s left and bottom inputs are both empty.</text>
+                  </g>
+                </svg>
+                <figcaption>The empty right output of B1 is passed to B2 as its left input.</figcaption>
+              </figure>
+              <figure>
+                <h4>4. B2 is pruned by Rule I</h4>
+                <svg viewBox="0 0 175 120" role="img" aria-labelledby="rule-one-result-title rule-one-result-desc">
+                  <title id="rule-one-result-title">Dashed outline around the pruned B2 region</title>
+                  <desc id="rule-one-result-desc">A pale grid with the upper-right two-by-two region shaded pink and outlined with a dark dashed border, matching the provided pruning screenshot.</desc>
+                  <rect width="175" height="120" fill="#f1f1f1" />
+                  <rect x="66" y="15" width="73" height="73" fill="#edcfd2" fill-opacity="0.7" />
+                  <g stroke="#c5c5c5" stroke-width="1.5" fill="none">
+                    <path d="M30 15H140M30 52H140M30 88H140" />
+                    <path d="M30 15V88M66 15V88M103 15V88M140 15V88" />
+                  </g>
+                  <rect x="66" y="15" width="73" height="73" fill="none" stroke="#303030" stroke-width="3" stroke-dasharray="8 5" stroke-linejoin="round" />
+                </svg>
+                <figcaption>The dashed outline marks B2 after Rule I: both inputs and both outputs are empty, so the algorithm skips processing its interior.</figcaption>
+              </figure>
+            </div>
+          </li>
+          <li>
+            <strong>Rule II — shrink past an unreachable strip.</strong> If the bottom input is empty but the left input contains reachable points, shrink the box to the first reachable coordinate on the left. The symmetric case applies when the left input is empty and the bottom input is reachable. The cut can pass through a cell. Boundary intervals stay indexed by cells, so the partial edge cell is still processed with the exact cut coordinate. The algorithm continues with the smaller box and corresponding inputs.
+            <p class="rule-one-example-copy">
+              The sequence below shows the curves, their free-space diagram, and successive box splits. At each shrink, the algorithm drops only the strip that cannot contain a reachable point and continues with the smaller box.
+            </p>
+            <div class="rule-one-visuals rule-two-visuals" aria-label="Curves, free-space diagram, and four stages illustrating Rule II">
+              <figure>
+                <h4>Curves, free space, and box shrinking</h4>
+                <img src="rule-two-example.svg" alt="Curves P and Q, a free-space diagram showing the divide-and-conquer path, and four box-shrinking steps for Rule II" loading="lazy" />
+                <figcaption>Redrawn from the supplied screens. The free-space outline is schematic; blue marks divide-and-conquer intervals and purple marks the path.</figcaption>
+              </figure>
+            </div>
+          </li>
+          <li>
+            <strong>Rule III — determine a simple output boundary directly.</strong> If the free intervals on a requested top or right boundary form at most one connected component, the algorithm can sometimes determine that output without subdividing the box further. This is safe when the boundary has no free points; when its first free point is at the start and that corner is reachable; or when the first free point is reachable from an input and the connecting segment through the box stays entirely in free space.
+            <p class="rule-one-example-copy">
+              <strong>Rule IIIa example:</strong> The right boundary contains no free points. Consequently, by Rule IIIa, no traversal can leave the box through this boundary, so its reachable output is empty. This output can be determined immediately without recursively subdividing the box to compute it; another output may still need to be computed separately.
+            </p>
+            <figure class="rule-three-example">
+              <img src="3a.png" alt="Selected box with blue left and bottom inputs and a red dashed right boundary that contains no free points" loading="lazy" />
+              <figcaption>The red dashed edge is the empty right output. Blue marks the inputs to the box.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <strong>Rule IV — skip a redundant outer output.</strong> If a box touches the diagram’s right edge and its top output is known, any path through the box to the endpoint must cross that top boundary, so the right output can be skipped. The symmetric case applies to a box touching the top edge: a known right output makes the top output unnecessary. In the diagram, the green top output is known and the purple right output is skipped.
+           <figure class="rule-three-example">
+            <img src="ruleiv.png"
+              alt="Selected box with blue left and bottom inputs and a red dashed right boundary that contains no free points"
+              loading="lazy" />
+            </figure>
+            </li>
+        </ol>
+        <p class="chapter-copy">
+          When a rule applies, the visualization marks the affected box and describes why. A pruned part is work the algorithm proves unnecessary for the requested reachability result; it does not mean that the entire free-space diagram has fewer cells. The full diagram still represents the same curve pairs and the same leash threshold.
+        </p>
+      </section>
+
+      <section class="chapter" id="chapter-6">
+        <span class="chapter-number">06</span>
+        <h2>The Greedy Heuristic</h2>
+        <p class="chapter-copy">
+          Greedy is a positive filter: it tries to prove that the curves are within δ by constructing a traversal. Starting at (P1, Q1), this project’s basic version considers the next vertex pair after advancing along P, along Q, or along both. It chooses the closest candidate whose distance is at most δ, then repeats.
+        </p>
+        <p class="chapter-copy">
+          If the walk reaches (P<sub>n</sub>, Q<sub>m</sub>), it has found a monotone path through free space and can answer “close.” Each move stays in one cell, and the free-space region in a cell is convex, so the straight connection between consecutive free pairs stays free too. The walk takes at most n + m moves.
+        </p>
+        <p class="chapter-copy">
+          Greedy never backtracks to try another choice. If it gets stuck because every next vertex pair is farther than δ, it answers “unknown,” not “far”: a different sequence of moves, including one through cell interiors, may still reach the endpoint.
+        </p>
+        <p class="chapter-note">
+          Greedy is separate from the pruning rules. Pruning reduces work inside divide-and-conquer; greedy tries one vertex-to-vertex route. In the current sketch, divide-and-conquer still runs after the filter, so the greedy result does not reduce the recorded D&amp;C steps.
+        </p>
+      </section>
+
+      <section class="chapter" id="chapter-7">
+        <span class="chapter-number">07</span>
+        <h2>Path Output correctness </h2>
+        
+      </section>
+
+      <section class="chapter" id="chapter-8">
+        <span class="chapter-number">08</span>
+        <h2>Comparing pruning with no pruning</h2>
+        <p class="chapter-copy">
+          On the curves P and Q shown in the chapter 03 , the divide-and-conquer run records 96 steps with pruning disabled and 20 steps with pruning enabled. That is 76 fewer recorded steps, or about 79% fewer. The curves and leash threshold stay the same; pruning lets the algorithm finish some box outputs early, shrink boxes, or skip an output that is not needed.
+        </p>
+        <figure class="comparison-figure">
+          <img src="pruning-comparison.svg" alt="Diagram-only comparison of the 96-step run without pruning and the 20-step run with pruning, including examples of Rules II, III, and IV" loading="lazy" />
+          <figcaption>Main pruning steps.</figcaption>
+        </figure>
+        <p class="chapter-note">
+          These counts are recorded box steps, not elapsed time or the number of free-space cells. The diagram keeps the same cells; pruning reduces how many boxes the algorithm has to process.
+        </p>
+      </section>
+
+      <section class="chapter" id="chapter-9">
+        <span class="chapter-number">09</span>
+        <h2>Conclusion</h2>
+        <p class="chapter-copy">
+          The Fréchet distance compares the shapes and order of two curves while allowing them to be traversed at different speeds. For a chosen leash length, the free-space diagram turns the question “can the curves stay this close?” into a reachability problem: a monotone path from the start to the end means yes.
+        </p>
+        <p class="chapter-copy">
+          The divide-and-conquer algorithm solves that problem by passing reachable intervals between boxes. Pruning uses those intervals and the structure of free space to skip work when the result can already be determined. Together, the diagrams and box-by-box view make the connection visible between the curves, the mathematical decision, and the algorithm’s computation.
+         Once a monotone path through the free-space diagram has been found, it defines a valid traversal of both curves, providing corresponding parameterizations such that the distance between the two curves never exceeds the threshold δ.
+        </p>
+      </section>
+    </div>
+  </main>
+  <script>
+    (() => {
+      // These points and delta match the example currently defined in sketch.js.
+      const P = [
+        { x: 43, y: 262 }, { x: 155, y: 145 }, { x: 270, y: 145 },
+        { x: 270, y: 34 }, { x: 214, y: 201 }, { x: 329, y: 201 },
+        { x: 442, y: 144 }
+      ];
+      const Q = [
+        { x: 162, y: 260 }, { x: 75, y: 178 }, { x: 89, y: 92 },
+        { x: 342, y: 76 }, { x: 334, y: 242 }, { x: 423, y: 195 },
+        { x: 307, y: 183 }, { x: 416, y: 115 }, { x: 459, y: 167 }
+      ];
+      const delta = 140;
+      const epsilon = 1e-9;
+      const resolution = 50;
+      const rows = Q.length - 1;
+      const cols = P.length - 1;
+      const canvas = document.getElementById("free-space-plot");
+      const context = canvas.getContext("2d");
+      const margin = { left: 48, right: 16, top: 16, bottom: 58 };
+      const plotWidth = canvas.width - margin.left - margin.right;
+      const plotHeight = canvas.height - margin.top - margin.bottom;
+      const cellWidth = plotWidth / cols;
+      const cellHeight = plotHeight / rows;
+
+      function segmentCircleInterval(A, B, C) {
+        const dx = B.x - A.x;
+        const dy = B.y - A.y;
+        const fx = A.x - C.x;
+        const fy = A.y - C.y;
+        const a = dx * dx + dy * dy;
+        const b = 2 * (fx * dx + fy * dy);
+        const c = fx * fx + fy * fy - delta * delta;
+
+        if (a < 1e-12) return c <= 0 ? [0, 1] : null;
+        const discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return null;
+
+        const root = Math.sqrt(discriminant);
+        const lower = Math.max(0, (-b - root) / (2 * a));
+        const upper = Math.min(1, (-b + root) / (2 * a));
+        return lower <= upper ? [lower, upper] : null;
+      }
+
+      function pointOnSegment(A, B, t) {
+        return {
+          x: A.x + t * (B.x - A.x),
+          y: A.y + t * (B.y - A.y)
+        };
+      }
+
+      const free = Array.from({ length: rows }, (_, j) =>
+        Array.from({ length: cols }, (_, i) => ({
+          L: segmentCircleInterval(Q[j], Q[j + 1], P[i]),
+          B: segmentCircleInterval(P[i], P[i + 1], Q[j]),
+          R: segmentCircleInterval(Q[j], Q[j + 1], P[i + 1]),
+          T: segmentCircleInterval(P[i], P[i + 1], Q[j + 1])
+        }))
+      );
+
+      const reachableLeft = Array(rows).fill(null);
+      const reachableBottom = Array(cols).fill(null);
+      const startDx = P[0].x - Q[0].x;
+      const startDy = P[0].y - Q[0].y;
+      const startFree = startDx * startDx + startDy * startDy <= delta * delta;
+
+      if (startFree) {
+        let canContinue = true;
+        for (let j = 0; j < rows; j++) {
+          const interval = free[j][0].L;
+          if (!canContinue || interval === null || interval[0] > epsilon) {
+            canContinue = false;
+          } else {
+            reachableLeft[j] = [0, interval[1]];
+            canContinue = interval[1] >= 1 - epsilon;
+          }
+        }
+
+        canContinue = true;
+        for (let i = 0; i < cols; i++) {
+          const interval = free[0][i].B;
+          if (!canContinue || interval === null || interval[0] > epsilon) {
+            canContinue = false;
+          } else {
+            reachableBottom[i] = [0, interval[1]];
+            canContinue = interval[1] >= 1 - epsilon;
+          }
+        }
+      }
+
+      const reachableRight = Array.from(
+        { length: rows },
+        () => Array(cols).fill(null)
+      );
+      const reachableTop = Array.from(
+        { length: rows },
+        () => Array(cols).fill(null)
+      );
+
+      for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+          const left = i === 0 ? reachableLeft[j] : reachableRight[j][i - 1];
+          const bottom = j === 0 ? reachableBottom[i] : reachableTop[j - 1][i];
+          const rightFree = free[j][i].R;
+          const topFree = free[j][i].T;
+
+          if (rightFree !== null) {
+            if (bottom !== null) {
+              reachableRight[j][i] = rightFree;
+            } else if (left !== null) {
+              const lower = Math.max(rightFree[0], left[0]);
+              if (lower <= rightFree[1] + epsilon) {
+                reachableRight[j][i] = [lower, rightFree[1]];
+              }
+            }
+          }
+
+          if (topFree !== null) {
+            if (left !== null) {
+              reachableTop[j][i] = topFree;
+            } else if (bottom !== null) {
+              const lower = Math.max(topFree[0], bottom[0]);
+              if (lower <= topFree[1] + epsilon) {
+                reachableTop[j][i] = [lower, topFree[1]];
+              }
+            }
+          }
+        }
+      }
+
+      function reconstructPath() {
+        const lastRight = reachableRight[rows - 1][cols - 1];
+        const lastTop = reachableTop[rows - 1][cols - 1];
+        const rightWorks = lastRight !== null && lastRight[1] >= 1 - epsilon;
+        const topWorks = lastTop !== null && lastTop[1] >= 1 - epsilon;
+        if (!rightWorks && !topWorks) return null;
+
+        let i = cols - 1;
+        let j = rows - 1;
+        let boundary = rightWorks ? "right" : "top";
+        const reversed = [[cols, rows]];
+
+        function addPoint(x, y) {
+          const last = reversed[reversed.length - 1];
+          if (Math.abs(last[0] - x) > epsilon || Math.abs(last[1] - y) > epsilon) {
+            reversed.push([x, y]);
+          }
+        }
+
+        for (let step = 0; step <= cols + rows; step++) {
+          const left = i === 0 ? reachableLeft[j] : reachableRight[j][i - 1];
+          const bottom = j === 0 ? reachableBottom[i] : reachableTop[j - 1][i];
+          let sourceS;
+          let sourceT;
+          let sourceBoundary;
+
+          if (boundary === "right") {
+            if (bottom !== null) {
+              sourceS = bottom[0];
+              sourceT = 0;
+              sourceBoundary = "bottom";
+            } else if (left !== null) {
+              sourceS = 0;
+              sourceT = left[0];
+              sourceBoundary = "left";
+            } else {
+              return null;
+            }
+          } else if (left !== null) {
+            sourceS = 0;
+            sourceT = left[0];
+            sourceBoundary = "left";
+          } else if (bottom !== null) {
+            sourceS = bottom[0];
+            sourceT = 0;
+            sourceBoundary = "bottom";
+          } else {
+            return null;
+          }
+
+          addPoint(i + sourceS, j + sourceT);
+
+          if (sourceBoundary === "left") {
+            if (i === 0) {
+              addPoint(0, 0);
+              break;
+            }
+            i--;
+            boundary = "right";
+          } else {
+            if (j === 0) {
+              addPoint(0, 0);
+              break;
+            }
+            j--;
+            boundary = "top";
+          }
+        }
+
+        return reversed.reverse();
+      }
+
+      const traversalPath = reconstructPath();
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+          const cellX = margin.left + i * cellWidth;
+          const cellY = margin.top + (rows - 1 - j) * cellHeight;
+
+          for (let y = 0; y < resolution; y++) {
+            for (let x = 0; x < resolution; x++) {
+              const s = (x + 0.5) / resolution;
+              const t = 1 - (y + 0.5) / resolution;
+              const p = pointOnSegment(P[i], P[i + 1], s);
+              const q = pointOnSegment(Q[j], Q[j + 1], t);
+              const dx = p.x - q.x;
+              const dy = p.y - q.y;
+
+              context.fillStyle = dx * dx + dy * dy <= delta * delta
+                ? "#00b400"
+                : "#c83232";
+              context.fillRect(
+                cellX + x * cellWidth / resolution,
+                cellY + y * cellHeight / resolution,
+                cellWidth / resolution + 0.2,
+                cellHeight / resolution + 0.2
+              );
+            }
+          }
+        }
+      }
+
+      context.strokeStyle = "#202b3a";
+      context.lineWidth = 1.5;
+      context.strokeRect(margin.left, margin.top, plotWidth, plotHeight);
+      for (let i = 1; i < cols; i++) {
+        const x = margin.left + i * cellWidth;
+        context.beginPath();
+        context.moveTo(x, margin.top);
+        context.lineTo(x, margin.top + plotHeight);
+        context.stroke();
+      }
+      for (let j = 1; j < rows; j++) {
+        const y = margin.top + j * cellHeight;
+        context.beginPath();
+        context.moveTo(margin.left, y);
+        context.lineTo(margin.left + plotWidth, y);
+        context.stroke();
+      }
+
+      context.fillStyle = "#26354a";
+      context.font = "14px system-ui, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "top";
+      for (let i = 0; i <= cols; i++) {
+        context.fillText(
+          String(i + 1),
+          margin.left + i * cellWidth,
+          margin.top + plotHeight + 7
+        );
+      }
+
+      context.textAlign = "right";
+      context.textBaseline = "middle";
+      for (let j = 0; j <= rows; j++) {
+        context.fillText(
+          String(j + 1),
+          margin.left - 9,
+          margin.top + (rows - j) * cellHeight
+        );
+      }
+
+      function drawVertical(interval, x, cellY) {
+        if (interval === null) return;
+        context.beginPath();
+        context.moveTo(x, cellY + (1 - interval[1]) * cellHeight);
+        context.lineTo(x, cellY + (1 - interval[0]) * cellHeight);
+        context.stroke();
+      }
+
+      function drawHorizontal(interval, y, cellX) {
+        if (interval === null) return;
+        context.beginPath();
+        context.moveTo(cellX + interval[0] * cellWidth, y);
+        context.lineTo(cellX + interval[1] * cellWidth, y);
+        context.stroke();
+      }
+
+      context.strokeStyle = "#0050ff";
+      context.lineWidth = 4;
+      context.lineCap = "round";
+      for (let j = 0; j < rows; j++) {
+        const cellY = margin.top + (rows - 1 - j) * cellHeight;
+        drawVertical(reachableLeft[j], margin.left, cellY);
+        for (let i = 0; i < cols; i++) {
+          const cellX = margin.left + i * cellWidth;
+          drawVertical(reachableRight[j][i], cellX + cellWidth, cellY);
+          drawHorizontal(reachableTop[j][i], cellY, cellX);
+        }
+      }
+      for (let i = 0; i < cols; i++) {
+        drawHorizontal(
+          reachableBottom[i],
+          margin.top + plotHeight,
+          margin.left + i * cellWidth
+        );
+      }
+
+      if (traversalPath !== null) {
+        context.strokeStyle = "#b400dc";
+        context.lineWidth = 4;
+        context.lineJoin = "round";
+        context.lineCap = "round";
+        context.beginPath();
+        traversalPath.forEach((point, index) => {
+          const x = margin.left + point[0] * cellWidth;
+          const y = margin.top + (rows - point[1]) * cellHeight;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.stroke();
+        context.fillStyle = "#b400dc";
+        for (const point of traversalPath) {
+          context.beginPath();
+          context.arc(
+            margin.left + point[0] * cellWidth,
+            margin.top + (rows - point[1]) * cellHeight,
+            3.5,
+            0,
+            2 * Math.PI
+          );
+          context.fill();
+        }
+      }
+
+      context.fillStyle = "#26354a";
+      context.font = "600 15px system-ui, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "bottom";
+      context.fillText("P →", margin.left + plotWidth / 2, canvas.height - 3);
+      context.save();
+      context.translate(15, margin.top + plotHeight / 2);
+      context.rotate(-Math.PI / 2);
+      context.textBaseline = "top";
+      context.fillText("Q →", 0, 0);
+      context.restore();
+
+      const lastRight = reachableRight[rows - 1][cols - 1];
+      const lastTop = reachableTop[rows - 1][cols - 1];
+      const endpointReachable =
+        (lastRight !== null && lastRight[1] >= 1 - epsilon) ||
+        (lastTop !== null && lastTop[1] >= 1 - epsilon);
+      document.getElementById("reachability-status").textContent = endpointReachable
+        ? "YES · endpoint is reachable at δ = 140"
+        : "NO · endpoint is not reachable at δ = 140";
+      document.getElementById("reachability-status").style.color = endpointReachable
+        ? "#087a32"
+        : "#c62828";
+    })();
+  </script>
+</body>
+</html>
