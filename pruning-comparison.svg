@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Divide-and-conquer boxes with and without pruning</title>
+  <desc id="desc">A comparison of the unpruned root split and three selected boxes from the 20-step pruned run, illustrating Rules II, III, and IV.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#aaa" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+  <rect width="1100" height="1000" fill="#fff"/>
+
+  <g font-family="Arial, sans-serif" fill="#202124">
+    <g transform="translate(28 28)">
+      <rect width="510" height="450" rx="10" fill="#fff" stroke="#d5dbe3" stroke-width="2"/>
+      <text x="20" y="36" font-size="23" font-weight="700">Without pruning · 96 steps</text>
+      <text x="20" y="63" font-size="16">Step 1 / 96 · Depth 0 · split-horizontal</text>
+      <g transform="translate(22 90)">
+        <rect width="144" height="96" fill="#f1c9a6"/>
+        <rect y="96" width="144" height="96" fill="#b9d9d2"/>
+        <rect width="144" height="192" fill="url(#grid)" stroke="#168260" stroke-width="4"/>
+        <path d="M0 96H144" stroke="#168260" stroke-width="4"/>
+        <path d="M0 192H34M0 192V162" fill="none" stroke="#0758e8" stroke-width="6"/>
+        <path d="M142 30V124" stroke="#e33" stroke-width="6"/>
+        <g text-anchor="middle" font-size="18" fill="#25313d"><text x="72" y="56">B2</text><text x="72" y="150">B1</text></g>
+      </g>
+      <text x="190" y="125" font-size="17">The root box is split into B1 and B2.</text>
+      <text x="190" y="155" font-size="17">Without pruning, recursion keeps</text>
+      <text x="190" y="180" font-size="17">splitting boxes down to individual</text>
+      <text x="190" y="205" font-size="17">cells before computing their outputs.</text>
+      <text x="20" y="420" font-size="15" fill="#5d6875">Blue = input intervals · Red = outputs · B1 is processed before B2</text>
+    </g>
+
+    <g transform="translate(562 28)">
+      <rect width="510" height="450" rx="10" fill="#fff" stroke="#d5dbe3" stroke-width="2"/>
+      <text x="20" y="36" font-size="23" font-weight="700">With pruning · Rule III · Step 4 / 20</text>
+      <text x="20" y="63" font-size="16">Box [0, 3] × [0, 2]</text>
+      <g transform="translate(22 90)">
+        <rect width="144" height="192" fill="url(#grid)" stroke="#aaa" stroke-width="2"/>
+        <rect x="0" y="144" width="72" height="48" fill="none" stroke="#303030" stroke-width="3" stroke-dasharray="8 5"/>
+        <path d="M0 180V192M0 192H30" fill="none" stroke="#0758e8" stroke-width="5"/>
+        <path d="M7 144V192" fill="none" stroke="#1681d8" stroke-width="3" stroke-dasharray="6 5"/>
+        <path d="M7 144H48" fill="none" stroke="#1681d8" stroke-width="5"/>
+        <path d="M72 144V192" fill="none" stroke="#d24637" stroke-width="4" stroke-dasharray="7 5"/>
+      </g>
+      <text x="190" y="125" font-size="17">Rule IIIc certifies the top output</text>
+      <text x="190" y="150" font-size="17">using a free segment through the box.</text>
+      <text x="190" y="190" font-size="17">Rule IIIa finds no free point on</text>
+      <text x="190" y="215" font-size="17">the right output boundary.</text>
+      <text x="20" y="420" font-size="15" fill="#5d6875">Solid blue = inputs/output · Dashed blue = Rule IIIc witness · Red = IIIa</text>
+    </g>
+
+    <g transform="translate(28 510)">
+      <rect width="510" height="450" rx="10" fill="#fff" stroke="#d5dbe3" stroke-width="2"/>
+      <text x="20" y="36" font-size="23" font-weight="700">With pruning · Rule II · Step 14 / 20</text>
+      <text x="20" y="63" font-size="16">Box [3, 6] × [0, 4]</text>
+      <g transform="translate(22 90)">
+        <rect width="144" height="192" fill="url(#grid)" stroke="#aaa" stroke-width="2"/>
+        <rect x="72" y="96" width="72" height="96" fill="none" stroke="#303030" stroke-width="3" stroke-dasharray="8 5"/>
+        <rect x="72" y="144" width="72" height="48" fill="#777" fill-opacity=".48"/>
+        <rect x="72" y="96" width="72" height="48" fill="none" stroke="#303030" stroke-width="4"/>
+        <path d="M72 120V144" stroke="#0758e8" stroke-width="5"/>
+        <path d="M72 144H144" stroke="#d24637" stroke-width="4"/>
+      </g>
+      <text x="190" y="125" font-size="17">The bottom input is empty.</text>
+      <text x="190" y="155" font-size="17">Rule II cuts away the lower strip</text>
+      <text x="190" y="180" font-size="17">up to the first reachable point on</text>
+      <text x="190" y="205" font-size="17">the left boundary.</text>
+      <text x="20" y="420" font-size="15" fill="#5d6875">Gray = removed strip · Red = new bottom edge · Blue = left input</text>
+    </g>
+
+    <g transform="translate(562 510)">
+      <rect width="510" height="450" rx="10" fill="#fff" stroke="#d5dbe3" stroke-width="2"/>
+      <text x="20" y="36" font-size="23" font-weight="700">With pruning · Rules II, IIIc, IV</text>
+      <text x="20" y="63" font-size="16">Step 19 / 20 · Box [0, 6] × [4, 8]</text>
+      <g transform="translate(22 90)">
+        <rect width="144" height="192" fill="url(#grid)" stroke="#aaa" stroke-width="2"/>
+        <rect y="0" width="144" height="96" fill="none" stroke="#303030" stroke-width="3" stroke-dasharray="8 5"/>
+        <rect x="48" y="0" width="96" height="96" fill="none" stroke="#303030" stroke-width="4"/>
+        <rect x="0" y="0" width="48" height="96" fill="#777" fill-opacity=".48"/>
+        <path d="M48 0H144" stroke="#188c50" stroke-width="5"/>
+        <path d="M48 96H78" stroke="#0758e8" stroke-width="5"/>
+        <path d="M48 0V96" stroke="#d24637" stroke-width="4"/>
+        <path d="M144 0V96" stroke="#9d43bd" stroke-width="5" stroke-dasharray="8 5"/>
+        <path d="M84 0V96" stroke="#1681d8" stroke-width="3" stroke-dasharray="6 5"/>
+      </g>
+      <text x="190" y="125" font-size="17">Rule II removes the left strip.</text>
+      <text x="190" y="155" font-size="17">Rule IIIc establishes the top output.</text>
+      <text x="190" y="185" font-size="17">Since the box touches the diagram’s</text>
+      <text x="190" y="210" font-size="17">right edge, Rule IV skips its right</text>
+      <text x="190" y="235" font-size="17">output (purple).</text>
+      <text x="20" y="420" font-size="15" fill="#5d6875">Gray = removed · Green = known top · Purple = skipped right output</text>
+    </g>
+  </g>
+</svg>
