@@ -606,7 +606,7 @@
             <div class="rule-one-visuals" aria-label="Four stages of the Rule I pruning example">
               <figure>
                 <h4>1. Curves and leash threshold</h4>
-                <img src="example-pruneI.png" alt="Curves P and Q with the delta equals 87 radius around P3" loading="lazy" />
+                <img src="img/example-prunel.png" alt="Curves P and Q with the delta equals 87 radius around P3" loading="lazy" />
                 <figcaption>The example curves define the free space for δ = 87.</figcaption>
               </figure>
               <figure>
@@ -675,7 +675,7 @@
             <div class="rule-one-visuals rule-two-visuals" aria-label="Curves, free-space diagram, and four stages illustrating Rule II">
               <figure>
                 <h4>Curves, free space, and box shrinking</h4>
-                <img src="rule-two-example.svg" alt="Curves P and Q, a free-space diagram showing the divide-and-conquer path, and four box-shrinking steps for Rule II" loading="lazy" />
+                <img src="img/rule-two-example.svg" alt="Curves P and Q, a free-space diagram showing the divide-and-conquer path, and four box-shrinking steps for Rule II" loading="lazy" />
                 <figcaption>Redrawn from the supplied screens. The free-space outline is schematic; blue marks divide-and-conquer intervals and purple marks the path.</figcaption>
               </figure>
             </div>
@@ -686,14 +686,14 @@
               <strong>Rule IIIa example:</strong> The right boundary contains no free points. Consequently, by Rule IIIa, no traversal can leave the box through this boundary, so its reachable output is empty. This output can be determined immediately without recursively subdividing the box to compute it; another output may still need to be computed separately.
             </p>
             <figure class="rule-three-example">
-              <img src="3a.png" alt="Selected box with blue left and bottom inputs and a red dashed right boundary that contains no free points" loading="lazy" />
+              <img src="img/3a.png" alt="Selected box with blue left and bottom inputs and a red dashed right boundary that contains no free points" loading="lazy" />
               <figcaption>The red dashed edge is the empty right output. Blue marks the inputs to the box.</figcaption>
             </figure>
           </li>
           <li>
             <strong>Rule IV — skip a redundant outer output.</strong> If a box touches the diagram’s right edge and its top output is known, any path through the box to the endpoint must cross that top boundary, so the right output can be skipped. The symmetric case applies to a box touching the top edge: a known right output makes the top output unnecessary. In the diagram, the green top output is known and the purple right output is skipped.
            <figure class="rule-three-example">
-            <img src="ruleiv.png"
+            <img src="img/ruleiv.png"
               alt="Selected box with blue left and bottom inputs and a red dashed right boundary that contains no free points"
               loading="lazy" />
             </figure>
@@ -734,7 +734,7 @@
           On the curves P and Q shown in the chapter 03 , the divide-and-conquer run records 96 steps with pruning disabled and 20 steps with pruning enabled. That is 76 fewer recorded steps, or about 79% fewer. The curves and leash threshold stay the same; pruning lets the algorithm finish some box outputs early, shrink boxes, or skip an output that is not needed.
         </p>
         <figure class="comparison-figure">
-          <img src="pruning-comparison.svg" alt="Diagram-only comparison of the 96-step run without pruning and the 20-step run with pruning, including examples of Rules II, III, and IV" loading="lazy" />
+          <img src="img/pruning-comparison.svg" alt="Diagram-only comparison of the 96-step run without pruning and the 20-step run with pruning, including examples of Rules II, III, and IV" loading="lazy" />
           <figcaption>Main pruning steps.</figcaption>
         </figure>
         <p class="chapter-note">
