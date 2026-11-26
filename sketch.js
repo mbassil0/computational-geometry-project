@@ -1847,4 +1847,4 @@ function windowResized() {
   resizeCanvas(windowWidth, visualizationCanvasHeight());
 
   redraw();
-}
+}  
